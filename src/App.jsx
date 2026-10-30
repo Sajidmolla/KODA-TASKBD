@@ -6,8 +6,6 @@ import {
   Smartphone, UserCheck, RefreshCw, ChevronRight, Menu, X,
   Globe, Send, ExternalLink, HelpCircle, User, BarChart2, Package, Layers, CreditCard
 } from 'lucide-react';
-import { auth, db } from './firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -17,17 +15,16 @@ export default function App() {
   const [user, setUser] = useState({
     name: 'Rafiqul Islam',
     email: '1roxi1@gmail.com',
-    mobile: '01700000000',
+    mobile: 'N/A',
     depositWallet: 0,
-    earningsWallet: 1450.00,
-    membership: 'Standard Pro',
-    activePackage: true,
-    tasksCompletedToday: 7,
-    dailyLimit: 10,
+    earningsWallet: 0,
+    membership: 'No Active Package',
+    activePackage: false,
+    tasksCompletedToday: 0,
+    dailyLimit: 0,
     referralCode: 'KODA9928X',
+    isAdmin: true
   });
-
-  const isAdmin = user.email === '1roxi1@gmail.com';
 
   const [profileNameInput, setProfileNameInput] = useState(user.name);
 
@@ -156,7 +153,7 @@ export default function App() {
                 { id: 'withdraw', label: 'Withdraw' },
                 { id: 'referral', label: 'Referral' },
                 { id: 'history', label: 'History' },
-                ...(isAdmin ? [{ id: 'admin', label: 'Admin Panel', icon: Settings }] : [])
+                ...(user.isAdmin ? [{ id: 'admin', label: 'Admin Panel', icon: Settings }] : [])
               ].map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -190,7 +187,7 @@ export default function App() {
                 }`}
               >
                 <User className="h-3.5 w-3.5 text-indigo-400" />
-                <span>{isAdmin ? 'Admin' : 'User'}</span>
+                <span>Admin</span>
               </button>
             </div>
           </div>
@@ -649,7 +646,7 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'admin' && isAdmin && (
+          {activeTab === 'admin' && user.isAdmin && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-extrabold text-white">Admin Control Panel</h1>
