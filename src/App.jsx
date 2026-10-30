@@ -7,14 +7,15 @@ import {
   Globe, Send, ExternalLink, HelpCircle, User, BarChart2, Package, Layers, CreditCard
 } from 'lucide-react';
 import { auth, db } from './firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from 'firebase/auth';
 
 export default function App() {
   const [authUser, setAuthUser] = useState(null);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [authMode, setAuthMode] = useState('register'); // default to register per user request
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [nameInput, setNameInput] = useState('');
+  const [mobileInput, setMobileInput] = useState('');
   const [authError, setAuthError] = useState('');
 
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -61,6 +62,11 @@ export default function App() {
     try {
       if (authMode === 'register') {
         const res = await createUserWithEmailAndPassword(auth, emailInput, passwordInput);
+        if (res.user) {
+          await updateProfile(res.user, {
+            displayName: nameInput
+          });
+        }
         alert('Account created successfully!');
       } else {
         await signInWithEmailAndPassword(auth, emailInput, passwordInput);
@@ -196,6 +202,34 @@ export default function App() {
           )}
 
           <form onSubmit={handleAuthSubmit} className="space-y-4">
+            {authMode === 'register' && (
+              <>
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Rafiqul Islam"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Mobile Number</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="01700000000"
+                    value={mobileInput}
+                    onChange={(e) => setMobileInput(e.target.value)}
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-xs font-mono text-slate-400 mb-1">Email Address</label>
               <input
@@ -815,7 +849,7 @@ export default function App() {
                     <div className="text-3xl font-black text-amber-400 font-mono">3</div>
                   </div>
 
-                  <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-2">
+                  <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-8">
                     <span className="text-xs text-slate-400 font-medium">Pending Withdrawal Requests</span>
                     <div className="text-3xl font-black text-amber-400 font-mono">3</div>
                   </div>
