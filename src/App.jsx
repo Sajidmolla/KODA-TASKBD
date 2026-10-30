@@ -4,7 +4,7 @@ import {
   Settings, LogOut, CheckCircle, AlertCircle, Copy, Lock, 
   Check, Play, Clock, Sparkles, Award, DollarSign, 
   Smartphone, UserCheck, RefreshCw, ChevronRight, Menu, X,
-  Globe, Send, ExternalLink, HelpCircle
+  Globe, Send, ExternalLink, HelpCircle, User
 } from 'lucide-react';
 
 export default function App() {
@@ -14,15 +14,18 @@ export default function App() {
   const [user, setUser] = useState({
     name: 'Rafiqul Islam',
     email: '1roxi1@gmail.com',
+    mobile: 'N/A',
     depositWallet: 0,
     earningsWallet: 0,
     membership: 'No Active Package',
     activePackage: false,
     tasksCompletedToday: 0,
     dailyLimit: 0,
-    referralCode: 'KODA9928X',
+    referralCode: 'N/A',
     isAdmin: true
   });
+
+  const [profileNameInput, setProfileNameInput] = useState(user.name);
 
   // Tasks state
   const [tasks, setTasks] = useState([
@@ -36,7 +39,7 @@ export default function App() {
   const [activeTimerTask, setActiveTimerTask] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Deposit State (matches screenshot image_4c3629.png)
+  // Deposit State
   const [depositMethod, setDepositMethod] = useState('bKash');
   const [depositTarget, setDepositTarget] = useState('Direct Balance');
   const [senderPhone, setSenderPhone] = useState('');
@@ -45,7 +48,7 @@ export default function App() {
   const [depositHistory, setDepositHistory] = useState([]);
   const [depositSuccess, setDepositSuccess] = useState('');
 
-  // Cashout State (matches screenshot image_4c3624.png)
+  // Cashout State
   const [cashoutMethod, setCashoutMethod] = useState('bKash');
   const [cashoutPhone, setCashoutPhone] = useState('');
   const [cashoutAmount, setCashoutAmount] = useState('');
@@ -180,10 +183,15 @@ export default function App() {
               >
                 {lang}
               </button>
-              <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-200">
-                <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-                <span>{user.name.split(' ')[0]}</span>
-              </div>
+              <button 
+                onClick={() => setActiveTab('profile')}
+                className={`flex items-center space-x-2 px-3 py-1 rounded-full border text-xs transition ${
+                  activeTab === 'profile' ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300' : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-slate-700'
+                }`}
+              >
+                <User className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Admin</span>
+              </button>
             </div>
           </div>
         </header>
@@ -191,7 +199,7 @@ export default function App() {
         {/* Main Content Area */}
         <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
           
-          {/* DASHBOARD TAB (matches screenshot image_4c9444.png) */}
+          {/* DASHBOARD TAB */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -275,6 +283,88 @@ export default function App() {
             </div>
           )}
 
+          {/* USER PROFILE SETTINGS TAB (matches screenshot image_4c2e4a.png) */}
+          {activeTab === 'profile' && (
+            <div className="space-y-6 max-w-2xl mx-auto">
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-500/30 flex items-center justify-center mx-auto text-indigo-400">
+                  <User className="h-6 w-6" />
+                </div>
+                <h1 className="text-2xl font-extrabold text-white">User Profile Settings</h1>
+              </div>
+
+              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-2">Full Name (Editable)</label>
+                  <input
+                    type="text"
+                    value={profileNameInput}
+                    onChange={(e) => setProfileNameInput(e.target.value)}
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-2">Email Address (Locked & Unchangeable)</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={user.email}
+                    className="w-full bg-[#0B0F19]/60 border border-slate-800/80 rounded-2xl px-4 py-3 text-xs text-slate-400 font-mono cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-2">Mobile Number (Locked & Unchangeable)</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={user.mobile}
+                    className="w-full bg-[#0B0F19]/60 border border-slate-800/80 rounded-2xl px-4 py-3 text-xs text-slate-400 font-mono cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-2">Unique Referral Code</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={user.referralCode}
+                    className="w-full bg-[#0B0F19]/60 border border-slate-800/80 rounded-2xl px-4 py-3 text-xs text-cyan-400 font-mono cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-2">Active Membership Package</label>
+                  <input
+                    type="text"
+                    disabled
+                    value={user.membership}
+                    className="w-full bg-[#0B0F19]/60 border border-slate-800/80 rounded-2xl px-4 py-3 text-xs text-amber-400 font-mono font-bold cursor-not-allowed"
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setUser(prev => ({ ...prev, name: profileNameInput }));
+                    alert('Profile name updated successfully!');
+                  }}
+                  className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-blue-600/20"
+                >
+                  Save Profile Name
+                </button>
+
+                <button
+                  onClick={() => alert('Logged out successfully (Demo)')}
+                  className="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-rose-600/20 flex items-center justify-center space-x-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout Account</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* TASKS TAB */}
           {activeTab === 'tasks' && (
             <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6">
@@ -296,7 +386,7 @@ export default function App() {
             </div>
           )}
 
-          {/* MEMBERSHIPS TAB (matches screenshot image_4c362c.png) */}
+          {/* MEMBERSHIPS TAB */}
           {activeTab === 'memberships' && (
             <div className="space-y-8">
               <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -356,20 +446,10 @@ export default function App() {
                   </div>
                 ))}
               </div>
-
-              <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-xs text-slate-300">
-                  <ShieldCheck className="h-5 w-5 text-blue-400 flex-shrink-0" />
-                  <span>Direct Deposit Verification: Send funds via personal bKash or Nagad to activate packages instantly upon admin transaction validation.</span>
-                </div>
-                <button onClick={() => setActiveTab('deposit')} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-xl font-medium">
-                  View Deposit Instructions
-                </button>
-              </div>
             </div>
           )}
 
-          {/* DEPOSIT TAB (matches screenshot image_4c3629.png) */}
+          {/* DEPOSIT TAB */}
           {activeTab === 'deposit' && (
             <div className="space-y-8">
               <div>
@@ -424,15 +504,6 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-
-                  <div>
-                    <h4 className="text-xs font-mono uppercase text-slate-400 mb-2">Instructions:</h4>
-                    <ol className="text-xs text-slate-400 space-y-1.5 list-decimal pl-4">
-                      <li>Open your {depositMethod} App and choose <strong className="text-slate-200">Send Money</strong>.</li>
-                      <li>Send exact amount to <strong className="text-slate-200 font-mono">01737966207</strong>.</li>
-                      <li>Copy the returned <strong className="text-slate-200 font-mono">Transaction ID (TrxID)</strong> and complete the verification form on the right.</li>
-                    </ol>
-                  </div>
                 </div>
 
                 <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
@@ -455,14 +526,14 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-mono text-slate-400 mb-2">Sender Mobile Number (From which you sent money) *</label>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Sender Mobile Number *</label>
                       <input
                         type="text"
                         required
                         placeholder="01700000000"
                         value={senderPhone}
                         onChange={(e) => setSenderPhone(e.target.value)}
-                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 font-mono"
                       />
                     </div>
 
@@ -474,7 +545,7 @@ export default function App() {
                         placeholder="500"
                         value={depositAmount}
                         onChange={(e) => setDepositAmount(e.target.value)}
-                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 font-mono"
                       />
                     </div>
 
@@ -486,7 +557,7 @@ export default function App() {
                         placeholder="SADFDF"
                         value={depositTrxId}
                         onChange={(e) => setDepositTrxId(e.target.value)}
-                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono uppercase"
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 uppercase font-mono"
                       />
                     </div>
 
@@ -500,277 +571,82 @@ export default function App() {
                   </form>
                 </div>
               </div>
-
-              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
-                <h3 className="text-lg font-bold text-white mb-6">Deposit Audit Log</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead>
-                      <tr className="border-b border-slate-800 text-slate-500 uppercase">
-                        <th className="pb-3 font-medium">TRXID</th>
-                        <th className="pb-3 font-medium">METHOD</th>
-                        <th className="pb-3 font-medium">SENDER PHONE</th>
-                        <th className="pb-3 font-medium">AMOUNT</th>
-                        <th className="pb-3 font-medium">PACKAGE TARGET</th>
-                        <th className="pb-3 font-medium">STATUS</th>
-                        <th className="pb-3 font-medium">ADMIN NOTE</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                      {depositHistory.length === 0 ? (
-                        <tr>
-                          <td colSpan="7" className="py-8 text-center text-slate-500">No deposits recorded yet.</td>
-                        </tr>
-                      ) : (
-                        depositHistory.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="py-4 text-cyan-400 font-bold">{item.trxId}</td>
-                            <td className="py-4">{item.method}</td>
-                            <td className="py-4">{item.senderPhone}</td>
-                            <td className="py-4">৳{item.amount}</td>
-                            <td className="py-4">{item.packageTarget}</td>
-                            <td className="py-4"><span className="px-2 py-1 rounded bg-amber-500/10 text-amber-400">{item.status}</span></td>
-                            <td className="py-4 text-slate-500">{item.adminNote}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           )}
 
-          {/* WITHDRAW TAB (matches screenshot image_4c3624.png) */}
+          {/* WITHDRAW TAB */}
           {activeTab === 'withdraw' && (
-            <div className="space-y-8">
+            <div className="space-y-8 max-w-3xl mx-auto">
               <div>
-                <span className="text-xs font-mono text-cyan-400 tracking-wider uppercase">Mobile Banking Disbursement • bKash / Nagad / Rocket • Zero Unjustified Holds</span>
+                <span className="text-xs font-mono text-cyan-400 tracking-wider uppercase">Mobile Banking Disbursement • bKash / Nagad / Rocket</span>
                 <h1 className="text-3xl font-extrabold text-white mt-1">Wallet Cashout Gateway</h1>
-                <p className="text-slate-400 text-sm mt-1">Transfer earnings directly to your personal mobile banking account. Requests are audited and settled with verifiable reference IDs.</p>
+                <p className="text-slate-400 text-sm mt-1">Transfer earnings directly to your personal mobile banking account.</p>
               </div>
 
-              {!user.activePackage && (
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                    <span><strong>Notice:</strong> You must have an active membership package to withdraw referral/earnings rewards.</span>
-                  </div>
-                  <button onClick={() => setActiveTab('memberships')} className="px-4 py-2 rounded-xl bg-amber-500 text-black font-bold text-xs uppercase hover:brightness-110">
-                    Buy Package
-                  </button>
-                </div>
-              )}
-
-              {cashoutSuccess && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                  <span>{cashoutSuccess}</span>
-                </div>
-              )}
-
-              {cashoutError && (
-                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm flex items-center space-x-3">
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                  <span>{cashoutError}</span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
-                  <div className="bg-[#0B0F19] border border-slate-800/80 rounded-2xl p-5 mb-6 flex items-center justify-between">
-                    <span className="text-xs uppercase font-mono text-slate-400">Available Wallet Balance</span>
-                    <span className="text-3xl font-black font-mono text-cyan-400">৳{user.earningsWallet.toFixed(2)}</span>
-                  </div>
-
-                  <form onSubmit={handleCashoutSubmit} className="space-y-6">
-                    <div>
-                      <label className="block text-xs font-mono text-slate-400 mb-3">Payout Provider</label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {['bKash', 'Nagad', 'Rocket'].map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => setCashoutMethod(m)}
-                            className={`py-3 rounded-2xl font-bold text-sm transition border ${
-                              cashoutMethod === m 
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30' 
-                                : 'bg-[#0B0F19] text-slate-400 border-slate-800 hover:border-slate-700'
-                            }`}
-                          >
-                            {m}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-mono text-slate-400 mb-2">Personal Recipient Mobile Number *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="01700000000"
-                        value={cashoutPhone}
-                        onChange={(e) => setCashoutPhone(e.target.value)}
-                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-mono text-slate-400 mb-2">Cashout Amount (BDT) *</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="Min ৳100, Max ৳25000"
-                        value={cashoutAmount}
-                        onChange={(e) => setCashoutAmount(e.target.value)}
-                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
-                      />
-                    </div>
-
-                    <div className="bg-[#0B0F19] border border-slate-800/80 rounded-2xl p-4 space-y-2 font-mono text-xs">
-                      <div className="flex justify-between text-slate-400">
-                        <span>Requested Gross:</span>
-                        <span className="text-white">৳{cashoutAmount ? parseFloat(cashoutAmount).toFixed(2) : '0.00'}</span>
-                      </div>
-                      <div className="flex justify-between text-rose-400">
-                        <span>Processing Fee (0%):</span>
-                        <span>-৳0.00</span>
-                      </div>
-                      <div className="pt-2 border-t border-slate-800 flex justify-between text-sm font-bold">
-                        <span className="text-slate-300">Net Receivable:</span>
-                        <span className="text-cyan-400">৳{cashoutAmount ? parseFloat(cashoutAmount).toFixed(2) : '0.00'}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-cyan-500/20 flex items-center justify-center space-x-2"
-                    >
-                      <ArrowUpRight className="h-4 w-4" />
-                      <span>Submit Cashout Request</span>
-                    </button>
-                  </form>
+              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div className="bg-[#0B0F19] border border-slate-800/80 rounded-2xl p-5 flex items-center justify-between">
+                  <span className="text-xs uppercase font-mono text-slate-400">Available Wallet Balance</span>
+                  <span className="text-3xl font-black font-mono text-cyan-400">৳{user.earningsWallet.toFixed(2)}</span>
                 </div>
 
-                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+                <form onSubmit={handleCashoutSubmit} className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-mono uppercase text-cyan-400 mb-4 flex items-center space-x-2">
-                      <ShieldCheck className="h-4 w-4" />
-                      <span>WITHDRAWAL TERMS</span>
-                    </h3>
-                    
-                    <div className="space-y-4 text-xs text-slate-400">
-                      <div>
-                        <strong className="block text-slate-200 mb-1">Threshold Policy</strong>
-                        <p>Minimum withdrawal is ৳100. Requests below this threshold cannot be processed.</p>
-                      </div>
-                      <div>
-                        <strong className="block text-slate-200 mb-1">Escrow & Refund Safety</strong>
-                        <p>Funds are held safely in escrow during verification. In the rare event of rejection, funds return immediately to your balance.</p>
-                      </div>
-                      <div>
-                        <strong className="block text-slate-200 mb-1">Reference ID Tracking</strong>
-                        <p>Every payout is logged with a verifiable TrxID accessible in your audit log below.</p>
-                      </div>
-                    </div>
+                    <label className="block text-xs font-mono text-slate-400 mb-2">Personal Recipient Mobile Number *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="01700000000"
+                      value={cashoutPhone}
+                      onChange={(e) => setCashoutPhone(e.target.value)}
+                      className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 font-mono"
+                    />
                   </div>
-                </div>
-              </div>
 
-              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
-                <h3 className="text-lg font-bold text-white mb-6">Withdrawal Audit Log</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead>
-                      <tr className="border-b border-slate-800 text-slate-500 uppercase">
-                        <th className="pb-3 font-medium">GROSS</th>
-                        <th className="pb-3 font-medium">NET DISBURSED</th>
-                        <th className="pb-3 font-medium">STATUS</th>
-                        <th className="pb-3 font-medium">PAYOUT TRXID</th>
-                        <th className="pb-3 font-medium">ADMIN NOTE</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                      {cashoutHistory.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="py-8 text-center text-slate-500">No withdrawal requests logged yet.</td>
-                        </tr>
-                      ) : (
-                        cashoutHistory.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="py-4 text-white">৳{item.gross.toFixed(2)}</td>
-                            <td className="py-4 text-cyan-400 font-bold">৳{item.netDisbursed.toFixed(2)}</td>
-                            <td className="py-4"><span className="px-2 py-1 rounded bg-amber-500/10 text-amber-400">{item.status}</span></td>
-                            <td className="py-4 text-slate-400">{item.payoutTrxId}</td>
-                            <td className="py-4 text-slate-500">{item.adminNote}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-2">Cashout Amount (BDT) *</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="Min ৳100, Max ৳25000"
+                      value={cashoutAmount}
+                      onChange={(e) => setCashoutAmount(e.target.value)}
+                      className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-cyan-500/20"
+                  >
+                    Submit Cashout Request
+                  </button>
+                </form>
               </div>
             </div>
           )}
 
-          {/* REFERRAL TAB (matches screenshot image_4c360c.png) */}
+          {/* REFERRAL TAB */}
           {activeTab === 'referral' && (
-            <div className="space-y-8">
+            <div className="space-y-8 max-w-3xl mx-auto">
               <div>
                 <h1 className="text-3xl font-extrabold text-white">Referral Program & Rewards</h1>
-                <p className="text-slate-400 text-sm mt-1">Invite friends and earn rewards when they activate their memberships.</p>
+                <p className="text-slate-400 text-sm mt-1">Invite friends and earn rewards when they activate memberships.</p>
               </div>
 
-              {!user.activePackage ? (
-                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-12 shadow-xl text-center max-w-4xl mx-auto space-y-6">
-                  <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
-                    <Lock className="h-8 w-8" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-white">Referral Program Locked</h2>
-                    <p className="text-slate-400 text-xs max-w-lg mx-auto mt-2">The referral system and unique referral link are unlocked exclusively for members who have purchased and activated a membership package. Normal users can view details below but cannot generate codes or earn referral bonuses yet.</p>
-                  </div>
-                  <button
-                    onClick={() => setActiveTab('memberships')}
-                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-amber-500/20"
-                  >
-                    Unlock Referral by Purchasing Membership Now &gt;
-                  </button>
+              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-12 shadow-xl text-center space-y-6">
+                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                  <Lock className="h-8 w-8" />
                 </div>
-              ) : (
-                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-                  <div>
-                    <h3 className="text-sm font-mono uppercase text-cyan-400 mb-2">Your Unique Referral Link</h3>
-                    <div className="flex items-center justify-between bg-[#0B0F19] p-4 rounded-2xl border border-slate-800">
-                      <span className="text-sm font-mono text-white">https://kodatask.bd/ref/{user.referralCode}</span>
-                      <button 
-                        onClick={() => navigator.clipboard.writeText(`https://kodatask.bd/ref/${user.referralCode}`)}
-                        className="px-4 py-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-mono flex items-center space-x-2 hover:bg-cyan-500/20"
-                      >
-                        <Copy className="h-4 w-4" />
-                        <span>Copy Link</span>
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white">Referral Program Locked</h2>
+                  <p className="text-slate-400 text-xs max-w-md mx-auto mt-2">The referral system is unlocked exclusively for members who have purchased and activated a membership package.</p>
                 </div>
-              )}
-
-              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-4 max-w-4xl mx-auto">
-                <h3 className="text-lg font-bold text-white">Milestone Rewards Structure</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {[
-                    { invites: '10 Invites', reward: '৳500 Cash Bonus' },
-                    { invites: '20 Invites', reward: '৳1,500 Cash Bonus' },
-                    { invites: '50 Invites', reward: '৳3,000 Cash Bonus' }
-                  ].map((m, idx) => (
-                    <div key={idx} className="bg-[#0B0F19] border border-slate-800 p-5 rounded-2xl space-y-1">
-                      <span className="text-xs font-mono text-amber-400 font-bold">{m.invites}</span>
-                      <h4 className="text-sm font-bold text-white">Reward: <span className="text-emerald-400">{m.reward}</span></h4>
-                      <span className="block text-[10px] text-slate-500">(Must have active membership)</span>
-                    </div>
-                  ))}
-                </div>
+                <button
+                  onClick={() => setActiveTab('memberships')}
+                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition"
+                >
+                  Unlock Referral by Purchasing Membership Now &gt;
+                </button>
               </div>
             </div>
           )}
