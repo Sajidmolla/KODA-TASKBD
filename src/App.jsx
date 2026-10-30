@@ -24,6 +24,7 @@ export default function App() {
     isAdmin: true
   });
 
+  // Tasks state
   const [tasks, setTasks] = useState([
     { id: 1, title: 'YouTube Video Watch & Subscribe', reward: 10, timer: 25, active: false, done: false },
     { id: 2, title: 'Facebook Page Follow & Like', reward: 8, timer: 20, active: false, done: false },
@@ -35,6 +36,23 @@ export default function App() {
   const [activeTimerTask, setActiveTimerTask] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
+  // Deposit State (matches screenshot image_4c3629.png)
+  const [depositMethod, setDepositMethod] = useState('bKash');
+  const [depositTarget, setDepositTarget] = useState('Direct Balance');
+  const [senderPhone, setSenderPhone] = useState('');
+  const [depositAmount, setDepositAmount] = useState('500');
+  const [depositTrxId, setDepositTrxId] = useState('');
+  const [depositHistory, setDepositHistory] = useState([]);
+  const [depositSuccess, setDepositSuccess] = useState('');
+
+  // Cashout State (matches screenshot image_4c3624.png)
+  const [cashoutMethod, setCashoutMethod] = useState('bKash');
+  const [cashoutPhone, setCashoutPhone] = useState('');
+  const [cashoutAmount, setCashoutAmount] = useState('');
+  const [cashoutHistory, setCashoutHistory] = useState([]);
+  const [cashoutError, setCashoutError] = useState('');
+  const [cashoutSuccess, setCashoutSuccess] = useState('');
+
   useEffect(() => {
     let interval;
     if (activeTimerTask !== null && timeLeft > 0) {
@@ -42,7 +60,6 @@ export default function App() {
         setTimeLeft(prev => prev - 1);
       }, 1000);
     } else if (timeLeft === 0 && activeTimerTask !== null) {
-      // Complete task
       setTasks(prev => prev.map(t => t.id === activeTimerTask ? { ...t, done: true, active: false } : t));
       setUser(prev => ({
         ...prev,
@@ -62,6 +79,56 @@ export default function App() {
     }
     setActiveTimerTask(task.id);
     setTimeLeft(task.timer);
+  };
+
+  const handleDepositSubmit = (e) => {
+    e.preventDefault();
+    if (!depositTrxId.trim()) return;
+    const newRecord = {
+      trxId: depositTrxId,
+      method: depositMethod,
+      senderPhone: senderPhone || '017XXXXXXXX',
+      amount: depositAmount,
+      packageTarget: depositTarget,
+      status: 'Pending Verification',
+      adminNote: 'Awaiting manual audit'
+    };
+    setDepositHistory([newRecord, ...depositHistory]);
+    setDepositTrxId('');
+    setDepositSuccess('Deposit verification reference submitted successfully!');
+    setTimeout(() => setDepositSuccess(''), 4000);
+  };
+
+  const handleCashoutSubmit = (e) => {
+    e.preventDefault();
+    const amt = parseFloat(cashoutAmount);
+    if (!amt || amt < 100 || amt > 25000) {
+      setCashoutError('Minimum cashout is ৳100 and Maximum is ৳25,000.');
+      return;
+    }
+    if (amt > user.earningsWallet) {
+      setCashoutError('Insufficient earnings wallet balance.');
+      return;
+    }
+    if (!user.activePackage) {
+      setCashoutError('You must have an active membership package to withdraw funds.');
+      return;
+    }
+
+    const newRecord = {
+      gross: amt,
+      netDisbursed: amt * 0.98,
+      status: 'Processing',
+      payoutTrxId: 'Pending',
+      adminNote: 'Queued for mobile disbursement'
+    };
+
+    setUser(prev => ({ ...prev, earningsWallet: prev.earningsWallet - amt }));
+    setCashoutHistory([newRecord, ...cashoutHistory]);
+    setCashoutAmount('');
+    setCashoutError('');
+    setCashoutSuccess('Cashout request submitted successfully!');
+    setTimeout(() => setCashoutSuccess(''), 4000);
   };
 
   return (
@@ -124,10 +191,9 @@ export default function App() {
         {/* Main Content Area */}
         <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
           
-          {/* DASHBOARD TAB */}
+          {/* DASHBOARD TAB (matches screenshot image_4c9444.png) */}
           {activeTab === 'dashboard' && (
             <div className="space-y-8">
-              {/* Top 3 Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg">
                   <div>
@@ -160,7 +226,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Available Tasks Section */}
               <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6">
                 <div className="border-b border-slate-800/80 pb-4">
                   <h2 className="text-lg font-bold text-white">Available Tasks (Timer & Link Enabled)</h2>
@@ -231,107 +296,481 @@ export default function App() {
             </div>
           )}
 
-          {/* MEMBERSHIPS TAB */}
+          {/* MEMBERSHIPS TAB (matches screenshot image_4c362c.png) */}
           {activeTab === 'memberships' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">Membership Packages</h2>
-                <p className="text-xs text-slate-400 mt-1">Upgrade your membership tier to unlock daily tasks and high-speed cashout queues.</p>
+            <div className="space-y-8">
+              <div className="text-center max-w-2xl mx-auto space-y-2">
+                <h2 className="text-3xl font-black text-white">Select Membership Plan</h2>
+                <p className="text-xs text-slate-400">Choose a tier that fits your daily availability. Upgrades take effect immediately and quota resets every 24 hours.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { name: 'Basic Starter', price: 500, tasks: '5 Daily Tasks', earnings: '৳250/day' },
-                  { name: 'Standard Pro', price: 1200, tasks: '10 Daily Tasks', earnings: '৳600/day' },
-                  { name: 'VIP Master Elite', price: 5000, tasks: '30 Daily Tasks', earnings: '৳2,000/day' }
+                  { name: 'Basic Starter', desc: 'Perfect for beginners looking to earn daily pocket money with easy micro-tasks.', price: 500, days: 30, limit: '5 Tasks', potential: '৳100', tasksList: ['5 Daily AI & Ad Tasks', '৳100 Daily Guaranteed Potential', '30 Days Validity', 'Instant bKash/Nagad Payout', 'Standard Support'] },
+                  { name: 'Standard Pro', desc: 'Most popular membership plan with enhanced daily income and high-tier tasks.', price: 1200, days: 30, limit: '10 Tasks', potential: '৳450', tasksList: ['10 Daily AI & Ad Tasks', '৳450 Daily Potential (৳13,500/mo)', '30 Days Validity', 'Priority Withdrawal Queue', 'Dedicated Telegram Support'] },
+                  { name: 'Premium Booster', desc: 'Advanced package for serious earners offering high payout AI tasks and extended validity.', price: 2500, days: 45, limit: '18 Tasks', potential: '৳950', tasksList: ['18 Daily Premium Tasks', '৳950 Daily Potential (৳42,750 total)', 'Extended 45 Days Validity', 'VIP Fast Cashouts', 'Exclusive High-Reward AI tasks'] },
+                  { name: 'VIP Master Elite', desc: 'Ultimate membership with maximum daily task limits, highest rewards and instant...', price: 5000, days: 60, limit: '30 Tasks', potential: '৳1700', tasksList: ['30 Daily High-Reward Tasks', '৳1700 Daily Potential (৳102,000 total)', '60 Days Long Validity', 'Instant Automated Cashouts', 'Personal Account Manager'] }
                 ].map((pkg, idx) => (
-                  <div key={idx} className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between shadow-xl">
-                    <div>
-                      <span className="text-xs font-mono text-emerald-400 uppercase">Popular Tier</span>
-                      <h3 className="text-xl font-black text-white mt-1">{pkg.name}</h3>
-                      <div className="text-3xl font-black text-emerald-400 my-4">৳{pkg.price}</div>
-                      <ul className="space-y-2 text-xs text-slate-300 mb-6">
-                        <li>✓ {pkg.tasks}</li>
-                        <li>✓ Estimated {pkg.earnings}</li>
-                        <li>✓ Instant Withdrawal Queue</li>
+                  <div key={idx} className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 flex flex-col justify-between shadow-xl">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-lg font-black text-white">{pkg.name}</h3>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">{pkg.desc}</p>
+                      </div>
+
+                      <div>
+                        <div className="text-3xl font-black text-amber-400 font-mono">৳{pkg.price} <span className="text-xs text-slate-400 font-normal">/ {pkg.days} Days</span></div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80 text-center font-mono">
+                        <div>
+                          <span className="block text-[9px] text-slate-500 uppercase">Daily Limit</span>
+                          <span className="text-xs font-bold text-white">{pkg.limit}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] text-slate-500 uppercase">Daily Potential</span>
+                          <span className="text-xs font-bold text-emerald-400">{pkg.potential}</span>
+                        </div>
+                      </div>
+
+                      <ul className="space-y-2 text-xs text-slate-300">
+                        {pkg.tasksList.map((t, i) => (
+                          <li key={i} className="flex items-start space-x-2">
+                            <span className="text-emerald-400 font-bold">✓</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
+
                     <button 
                       onClick={() => {
                         setUser(prev => ({ ...prev, membership: pkg.name, activePackage: true, dailyLimit: 10 }));
                         alert(`Successfully activated ${pkg.name}!`);
                         setActiveTab('dashboard');
                       }}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition"
+                      className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-amber-500/20"
                     >
-                      Activate Package
+                      Deposit ৳{pkg.price} to Activate &gt;
                     </button>
                   </div>
                 ))}
               </div>
+
+              <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3 text-xs text-slate-300">
+                  <ShieldCheck className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                  <span>Direct Deposit Verification: Send funds via personal bKash or Nagad to activate packages instantly upon admin transaction validation.</span>
+                </div>
+                <button onClick={() => setActiveTab('deposit')} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-xl font-medium">
+                  View Deposit Instructions
+                </button>
+              </div>
             </div>
           )}
 
-          {/* DEPOSIT TAB */}
+          {/* DEPOSIT TAB (matches screenshot image_4c3629.png) */}
           {activeTab === 'deposit' && (
-            <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 max-w-2xl mx-auto">
-              <h2 className="text-xl font-bold text-white">Manual Deposit Verification</h2>
-              <p className="text-xs text-slate-400">Send money to our bKash/Nagad personal number (01737966207) and submit your TrxID below.</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-2">Select Provider</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['bKash', 'Nagad', 'Rocket'].map(m => (
-                      <button key={m} className="py-2.5 bg-[#0B0F19] border border-slate-800 rounded-xl text-xs font-bold text-white hover:border-emerald-500">
+            <div className="space-y-8">
+              <div>
+                <span className="text-xs font-mono text-cyan-400 tracking-wider uppercase">Manual Gateway • Personal Account Verification • Deduplication Indexed</span>
+                <h1 className="text-3xl font-extrabold text-white mt-1">Deposit Verification Gateway</h1>
+                <p className="text-slate-400 text-sm mt-1">Transfer to our verified personal line, submit your Transaction ID (TrxID), and balance or package will be credited automatically.</p>
+              </div>
+
+              {depositSuccess && (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                  <span>{depositSuccess}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                  <h3 className="text-sm font-mono uppercase text-slate-400 mb-4">1. Select Financial Provider</h3>
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {['bKash', 'Nagad', 'Rocket'].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setDepositMethod(m)}
+                        className={`py-3 px-4 rounded-2xl font-bold text-sm transition border ${
+                          depositMethod === m 
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30' 
+                            : 'bg-[#0B0F19] text-slate-400 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
                         {m}
+                        <span className="block text-[10px] font-normal text-slate-300 mt-0.5">Personal</span>
                       </button>
                     ))}
                   </div>
+
+                  <div className="bg-[#0B0F19] border border-slate-800/80 rounded-2xl p-5 mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-slate-400 font-mono">Official {depositMethod} Personal Line:</span>
+                      <span className="text-xs font-mono text-emerald-400 flex items-center space-x-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                        <span>Verified Active</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between bg-[#111827] p-3 rounded-xl border border-slate-800">
+                      <span className="text-lg font-mono font-bold text-white tracking-widest">01737966207</span>
+                      <button 
+                        onClick={() => navigator.clipboard.writeText('01737966207')}
+                        className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono flex items-center space-x-1 border border-slate-700"
+                      >
+                        <Copy className="h-3 w-3" />
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-mono uppercase text-slate-400 mb-2">Instructions:</h4>
+                    <ol className="text-xs text-slate-400 space-y-1.5 list-decimal pl-4">
+                      <li>Open your {depositMethod} App and choose <strong className="text-slate-200">Send Money</strong>.</li>
+                      <li>Send exact amount to <strong className="text-slate-200 font-mono">01737966207</strong>.</li>
+                      <li>Copy the returned <strong className="text-slate-200 font-mono">Transaction ID (TrxID)</strong> and complete the verification form on the right.</li>
+                    </ol>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-2">Transaction ID (TrxID)</label>
-                  <input type="text" placeholder="e.g. 9N87B6V543" className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white uppercase font-mono" />
+
+                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                  <h3 className="text-sm font-mono uppercase text-slate-400 mb-4">2. Submit Transaction Reference</h3>
+                  
+                  <form onSubmit={handleDepositSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Target Membership Tier (Optional)</label>
+                      <select
+                        value={depositTarget}
+                        onChange={(e) => setDepositTarget(e.target.value)}
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-medium"
+                      >
+                        <option value="Direct Balance">Direct Balance</option>
+                        <option value="Basic Starter — ৳500 (5 Daily Tasks)">Basic Starter — ৳500 (5 Daily Tasks)</option>
+                        <option value="Standard Pro — ৳1200 (10 Daily Tasks)">Standard Pro — ৳1200 (10 Daily Tasks)</option>
+                        <option value="Premium Booster — ৳2500 (18 Daily Tasks)">Premium Booster — ৳2500 (18 Daily Tasks)</option>
+                        <option value="VIP Master Elite — ৳5000 (30 Daily Tasks)">VIP Master Elite — ৳5000 (30 Daily Tasks)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Sender Mobile Number (From which you sent money) *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="01700000000"
+                        value={senderPhone}
+                        onChange={(e) => setSenderPhone(e.target.value)}
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Deposit Amount (BDT) *</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="500"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Transaction ID (TrxID) *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="SADFDF"
+                        value={depositTrxId}
+                        onChange={(e) => setDepositTrxId(e.target.value)}
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono uppercase"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-cyan-500/20 flex items-center justify-center space-x-2"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>Submit Deposit Reference</span>
+                    </button>
+                  </form>
                 </div>
-                <button onClick={() => alert('Deposit verification submitted successfully!')} className="w-full py-3 bg-emerald-500 text-black font-bold text-xs uppercase rounded-xl">
-                  Submit Deposit
-                </button>
+              </div>
+
+              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <h3 className="text-lg font-bold text-white mb-6">Deposit Audit Log</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-slate-500 uppercase">
+                        <th className="pb-3 font-medium">TRXID</th>
+                        <th className="pb-3 font-medium">METHOD</th>
+                        <th className="pb-3 font-medium">SENDER PHONE</th>
+                        <th className="pb-3 font-medium">AMOUNT</th>
+                        <th className="pb-3 font-medium">PACKAGE TARGET</th>
+                        <th className="pb-3 font-medium">STATUS</th>
+                        <th className="pb-3 font-medium">ADMIN NOTE</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                      {depositHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="py-8 text-center text-slate-500">No deposits recorded yet.</td>
+                        </tr>
+                      ) : (
+                        depositHistory.map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="py-4 text-cyan-400 font-bold">{item.trxId}</td>
+                            <td className="py-4">{item.method}</td>
+                            <td className="py-4">{item.senderPhone}</td>
+                            <td className="py-4">৳{item.amount}</td>
+                            <td className="py-4">{item.packageTarget}</td>
+                            <td className="py-4"><span className="px-2 py-1 rounded bg-amber-500/10 text-amber-400">{item.status}</span></td>
+                            <td className="py-4 text-slate-500">{item.adminNote}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
-          {/* WITHDRAW TAB */}
+          {/* WITHDRAW TAB (matches screenshot image_4c3624.png) */}
           {activeTab === 'withdraw' && (
-            <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 max-w-2xl mx-auto">
-              <h2 className="text-xl font-bold text-white">Wallet Cashout</h2>
-              <p className="text-xs text-slate-400">Withdraw your earnings directly to your mobile banking account.</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-2">Recipient Number</label>
-                  <input type="text" placeholder="01700000000" className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white font-mono" />
+            <div className="space-y-8">
+              <div>
+                <span className="text-xs font-mono text-cyan-400 tracking-wider uppercase">Mobile Banking Disbursement • bKash / Nagad / Rocket • Zero Unjustified Holds</span>
+                <h1 className="text-3xl font-extrabold text-white mt-1">Wallet Cashout Gateway</h1>
+                <p className="text-slate-400 text-sm mt-1">Transfer earnings directly to your personal mobile banking account. Requests are audited and settled with verifiable reference IDs.</p>
+              </div>
+
+              {!user.activePackage && (
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                    <span><strong>Notice:</strong> You must have an active membership package to withdraw referral/earnings rewards.</span>
+                  </div>
+                  <button onClick={() => setActiveTab('memberships')} className="px-4 py-2 rounded-xl bg-amber-500 text-black font-bold text-xs uppercase hover:brightness-110">
+                    Buy Package
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-2">Amount (BDT)</label>
-                  <input type="number" placeholder="Min ৳100" className="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-4 py-3 text-xs text-white font-mono" />
+              )}
+
+              {cashoutSuccess && (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                  <span>{cashoutSuccess}</span>
                 </div>
-                <button onClick={() => alert('Cashout request submitted!')} className="w-full py-3 bg-blue-600 text-white font-bold text-xs uppercase rounded-xl">
-                  Request Withdrawal
-                </button>
+              )}
+
+              {cashoutError && (
+                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm flex items-center space-x-3">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                  <span>{cashoutError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                  <div className="bg-[#0B0F19] border border-slate-800/80 rounded-2xl p-5 mb-6 flex items-center justify-between">
+                    <span className="text-xs uppercase font-mono text-slate-400">Available Wallet Balance</span>
+                    <span className="text-3xl font-black font-mono text-cyan-400">৳{user.earningsWallet.toFixed(2)}</span>
+                  </div>
+
+                  <form onSubmit={handleCashoutSubmit} className="space-y-6">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-3">Payout Provider</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {['bKash', 'Nagad', 'Rocket'].map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setCashoutMethod(m)}
+                            className={`py-3 rounded-2xl font-bold text-sm transition border ${
+                              cashoutMethod === m 
+                                ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30' 
+                                : 'bg-[#0B0F19] text-slate-400 border-slate-800 hover:border-slate-700'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Personal Recipient Mobile Number *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="01700000000"
+                        value={cashoutPhone}
+                        onChange={(e) => setCashoutPhone(e.target.value)}
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-2">Cashout Amount (BDT) *</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="Min ৳100, Max ৳25000"
+                        value={cashoutAmount}
+                        onChange={(e) => setCashoutAmount(e.target.value)}
+                        className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                    </div>
+
+                    <div className="bg-[#0B0F19] border border-slate-800/80 rounded-2xl p-4 space-y-2 font-mono text-xs">
+                      <div className="flex justify-between text-slate-400">
+                        <span>Requested Gross:</span>
+                        <span className="text-white">৳{cashoutAmount ? parseFloat(cashoutAmount).toFixed(2) : '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between text-rose-400">
+                        <span>Processing Fee (0%):</span>
+                        <span>-৳0.00</span>
+                      </div>
+                      <div className="pt-2 border-t border-slate-800 flex justify-between text-sm font-bold">
+                        <span className="text-slate-300">Net Receivable:</span>
+                        <span className="text-cyan-400">৳{cashoutAmount ? parseFloat(cashoutAmount).toFixed(2) : '0.00'}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-cyan-500/20 flex items-center justify-center space-x-2"
+                    >
+                      <ArrowUpRight className="h-4 w-4" />
+                      <span>Submit Cashout Request</span>
+                    </button>
+                  </form>
+                </div>
+
+                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-sm font-mono uppercase text-cyan-400 mb-4 flex items-center space-x-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>WITHDRAWAL TERMS</span>
+                    </h3>
+                    
+                    <div className="space-y-4 text-xs text-slate-400">
+                      <div>
+                        <strong className="block text-slate-200 mb-1">Threshold Policy</strong>
+                        <p>Minimum withdrawal is ৳100. Requests below this threshold cannot be processed.</p>
+                      </div>
+                      <div>
+                        <strong className="block text-slate-200 mb-1">Escrow & Refund Safety</strong>
+                        <p>Funds are held safely in escrow during verification. In the rare event of rejection, funds return immediately to your balance.</p>
+                      </div>
+                      <div>
+                        <strong className="block text-slate-200 mb-1">Reference ID Tracking</strong>
+                        <p>Every payout is logged with a verifiable TrxID accessible in your audit log below.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <h3 className="text-lg font-bold text-white mb-6">Withdrawal Audit Log</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-slate-500 uppercase">
+                        <th className="pb-3 font-medium">GROSS</th>
+                        <th className="pb-3 font-medium">NET DISBURSED</th>
+                        <th className="pb-3 font-medium">STATUS</th>
+                        <th className="pb-3 font-medium">PAYOUT TRXID</th>
+                        <th className="pb-3 font-medium">ADMIN NOTE</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                      {cashoutHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="py-8 text-center text-slate-500">No withdrawal requests logged yet.</td>
+                        </tr>
+                      ) : (
+                        cashoutHistory.map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="py-4 text-white">৳{item.gross.toFixed(2)}</td>
+                            <td className="py-4 text-cyan-400 font-bold">৳{item.netDisbursed.toFixed(2)}</td>
+                            <td className="py-4"><span className="px-2 py-1 rounded bg-amber-500/10 text-amber-400">{item.status}</span></td>
+                            <td className="py-4 text-slate-400">{item.payoutTrxId}</td>
+                            <td className="py-4 text-slate-500">{item.adminNote}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
-          {/* REFERRAL TAB */}
+          {/* REFERRAL TAB (matches screenshot image_4c360c.png) */}
           {activeTab === 'referral' && (
-            <div className="bg-[#111827] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6">
-              <h2 className="text-xl font-bold text-white">Referral Program & Rewards</h2>
-              <p className="text-xs text-slate-400">Invite friends and earn bonuses when they activate membership packages.</p>
-              <div className="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-mono text-emerald-400">https://kodatask.bd/ref/{user.referralCode}</span>
-                <button onClick={() => navigator.clipboard.writeText('https://kodatask.bd/ref/' + user.referralCode)} className="px-3 py-1.5 bg-slate-800 text-xs rounded-lg text-slate-200">
-                  Copy Link
-                </button>
+            <div className="space-y-8">
+              <div>
+                <h1 className="text-3xl font-extrabold text-white">Referral Program & Rewards</h1>
+                <p className="text-slate-400 text-sm mt-1">Invite friends and earn rewards when they activate their memberships.</p>
+              </div>
+
+              {!user.activePackage ? (
+                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-12 shadow-xl text-center max-w-4xl mx-auto space-y-6">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                    <Lock className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white">Referral Program Locked</h2>
+                    <p className="text-slate-400 text-xs max-w-lg mx-auto mt-2">The referral system and unique referral link are unlocked exclusively for members who have purchased and activated a membership package. Normal users can view details below but cannot generate codes or earn referral bonuses yet.</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('memberships')}
+                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-amber-500/20"
+                  >
+                    Unlock Referral by Purchasing Membership Now &gt;
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                  <div>
+                    <h3 className="text-sm font-mono uppercase text-cyan-400 mb-2">Your Unique Referral Link</h3>
+                    <div className="flex items-center justify-between bg-[#0B0F19] p-4 rounded-2xl border border-slate-800">
+                      <span className="text-sm font-mono text-white">https://kodatask.bd/ref/{user.referralCode}</span>
+                      <button 
+                        onClick={() => navigator.clipboard.writeText(`https://kodatask.bd/ref/${user.referralCode}`)}
+                        className="px-4 py-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-mono flex items-center space-x-2 hover:bg-cyan-500/20"
+                      >
+                        <Copy className="h-4 w-4" />
+                        <span>Copy Link</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-4 max-w-4xl mx-auto">
+                <h3 className="text-lg font-bold text-white">Milestone Rewards Structure</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    { invites: '10 Invites', reward: '৳500 Cash Bonus' },
+                    { invites: '20 Invites', reward: '৳1,500 Cash Bonus' },
+                    { invites: '50 Invites', reward: '৳3,000 Cash Bonus' }
+                  ].map((m, idx) => (
+                    <div key={idx} className="bg-[#0B0F19] border border-slate-800 p-5 rounded-2xl space-y-1">
+                      <span className="text-xs font-mono text-amber-400 font-bold">{m.invites}</span>
+                      <h4 className="text-sm font-bold text-white">Reward: <span className="text-emerald-400">{m.reward}</span></h4>
+                      <span className="block text-[10px] text-slate-500">(Must have active membership)</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
