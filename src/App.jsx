@@ -6,15 +6,24 @@ import {
   Smartphone, UserCheck, RefreshCw, ChevronRight, Menu, X,
   Globe, Send, ExternalLink, HelpCircle, User, BarChart2, Package, Layers, CreditCard
 } from 'lucide-react';
+import { auth, db } from './firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
+  const [authUser, setAuthUser] = useState(null);
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
+  const [authError, setAuthError] = useState('');
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [adminSubTab, setAdminSubTab] = useState('overview');
   const [lang, setLang] = useState('EN');
   
   const [user, setUser] = useState({
-    name: 'Rafiqul Islam',
-    email: '1roxi1@gmail.com',
+    name: 'New User',
+    email: '',
     mobile: 'N/A',
     depositWallet: 0,
     earningsWallet: 0,
@@ -22,11 +31,50 @@ export default function App() {
     activePackage: false,
     tasksCompletedToday: 0,
     dailyLimit: 0,
-    referralCode: 'KODA9928X',
-    isAdmin: true
+    referralCode: 'KODA' + Math.floor(1000 + Math.random() * 9000),
   });
 
+  const isAdmin = user.email === '1roxi1@gmail.com';
   const [profileNameInput, setProfileNameInput] = useState(user.name);
+
+  // Monitor Firebase Auth State
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setAuthUser(firebaseUser);
+        setUser(prev => ({
+          ...prev,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || (firebaseUser.email === '1roxi1@gmail.com' ? 'Admin 1roxi1' : 'Valued Member')
+        }));
+        setProfileNameInput(firebaseUser.displayName || (firebaseUser.email === '1roxi1@gmail.com' ? 'Admin 1roxi1' : 'Valued Member'));
+      } else {
+        setAuthUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      if (authMode === 'register') {
+        const res = await createUserWithEmailAndPassword(auth, emailInput, passwordInput);
+        alert('Account created successfully!');
+      } else {
+        await signInWithEmailAndPassword(auth, emailInput, passwordInput);
+      }
+    } catch (err) {
+      setAuthError(err.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setAuthUser(null);
+    setActiveTab('dashboard');
+  };
 
   const [tasks, setTasks] = useState([
     { id: 1, title: 'YouTube Video Watch & Subscribe', reward: 10, timer: 25, active: false, done: false },
@@ -132,6 +180,76 @@ export default function App() {
     setTimeout(() => setCashoutSuccess(''), 4000);
   };
 
+  if (!authUser) {
+    return (
+      <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex items-center justify-center p-4">
+        <div className="bg-[#111827] border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-black text-white tracking-wider">KODA Task BD</h1>
+            <p className="text-xs text-slate-400">Membership-Based Task & Earning Platform</p>
+          </div>
+
+          {authError && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+              {authError}
+            </div>
+          )}
+
+          <form onSubmit={handleAuthSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-mono text-slate-400 mb-1">Email Address</label>
+              <input
+                type="email"
+                required
+                placeholder="user@gmail.com"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono text-slate-400 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className="w-full bg-[#0B0F19] border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg shadow-cyan-500/20"
+            >
+              {authMode === 'login' ? 'Login to Account' : 'Register New Account'}
+            </button>
+          </form>
+
+          <div className="text-center text-xs text-slate-400">
+            {authMode === 'login' ? (
+              <p>
+                Don't have an account?{' '}
+                <button onClick={() => setAuthMode('register')} className="text-cyan-400 font-bold hover:underline">
+                  Register here
+                </button>
+              </p>
+            ) : (
+              <p>
+                Already have an account?{' '}
+                <button onClick={() => setAuthMode('login')} className="text-cyan-400 font-bold hover:underline">
+                  Login here
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0F19] text-slate-100 font-sans flex flex-col justify-between selection:bg-emerald-500 selection:text-black">
       <div>
@@ -153,7 +271,7 @@ export default function App() {
                 { id: 'withdraw', label: 'Withdraw' },
                 { id: 'referral', label: 'Referral' },
                 { id: 'history', label: 'History' },
-                ...(user.isAdmin ? [{ id: 'admin', label: 'Admin Panel', icon: Settings }] : [])
+                ...(isAdmin ? [{ id: 'admin', label: 'Admin Panel', icon: Settings }] : [])
               ].map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -187,7 +305,7 @@ export default function App() {
                 }`}
               >
                 <User className="h-3.5 w-3.5 text-indigo-400" />
-                <span>Admin</span>
+                <span>{isAdmin ? 'Admin' : 'User'}</span>
               </button>
             </div>
           </div>
@@ -636,7 +754,7 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => alert('Logged out successfully (Demo)')}
+                  onClick={handleLogout}
                   className="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-rose-600/20 flex items-center justify-center space-x-2"
                 >
                   <LogOut className="h-4 w-4" />
@@ -646,7 +764,7 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'admin' && user.isAdmin && (
+          {activeTab === 'admin' && isAdmin && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl font-extrabold text-white">Admin Control Panel</h1>
